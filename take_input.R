@@ -8,10 +8,12 @@ data$lon = NULL
 
 data[grep("@", data$matchup),"matchup"] = "AWAY"
 data[grep("vs.", data$matchup),"matchup"] = "HOME"
+data$matchup = as.factor(data$matchup)
 data$action_type = as.factor(data$action_type)
 data$combined_shot_type = as.factor(data$combined_shot_type)
 data$period = as.factor(data$period)
 data$season = as.factor(data$season)
+data$minutes_remaining = as.factor(data$minutes_remaining)
 data$shot_type = as.factor(data$shot_type)
 data$shot_zone_area = as.factor(data$shot_zone_area)
 data$shot_zone_basic = as.factor(data$shot_zone_basic)
