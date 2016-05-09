@@ -20,8 +20,3 @@ data$shot_zone_basic = as.factor(data$shot_zone_basic)
 data$shot_zone_range = as.factor(data$shot_zone_range)
 data$opponent = as.factor(data$opponent)
 data$game_date = as.Date(data$game_date)
-
-train = subset(data, !is.na(data$shot_made_flag))
-test = subset(data, is.na(data$shot_made_flag))
-
-train$shot_made_flag <- as.factor(train$shot_made_flag)
