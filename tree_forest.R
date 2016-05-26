@@ -1,5 +1,6 @@
 source('./take_input.R')
 library(party)
+library(caTools)
 
 data$game_event_id = NULL
 data$game_id = NULL
@@ -14,27 +15,36 @@ data$loc_x = NULL
 data$loc_y = NULL 
 
 train = subset(data, !is.na(data$shot_made_flag))
+sample = sample.split(train$shot_made_flag, SplitRatio = 0.80)
+train_train = subset(train, sample == TRUE)
+train_test = subset(train, sample == FALSE)
+
 test = subset(data, is.na(data$shot_made_flag))
 
 train$shot_made_flag <- as.factor(train$shot_made_flag)
 test$shot_made_flag = NULL
 
-result = data.frame(nrow = nrow(test), ncol = 2)
-colnames(result) = c("shot_id", "shot_made_flag")
+result= data.frame()
 
 for(i in levels(train$season)){
-  train_season = subset(train, as.character(train$season) <= i)
-  test_season = subset(test, as.character(test$season) == i)
+  train_season = subset(train_train, as.character(train_train$season) <= i)
+  test_season = subset(train_test, as.character(train_test$season) == i)
   train_season$season = NULL
   test_season$season = NULL
   
-
   tree = ctree(shot_made_flag~.-shot_id, data = train_season)
-  pred_tree = predict(tree,  type = "prob", test_season)
+  pred_tree = predict(tree,  type = "prob",newdata = test_season)
   
-  for (j in 1:length(pred_tree)){
-    result = rbind(result, list(test_season[j,]$shot_id, pred_tree[j][[1]][2]))
+  #for (j in 1:length(pred_tree)){
+  #  result = rbind(result, list(test_season[j,]$shot_id, pred_tree[j][[1]][2]))
+  #}
+  
+  for (j in 1:nrow(test_season)){
+    result = rbind(result, list(as.numeric(test_season[j,]$shot_made_flag), (as.numeric(pred_tree[j][[1]][2] > 0.5)+1)))
   }
 }
 
-write.csv(result, "cTree_Train_Previous_Seasons_with_Distance_Angle_Time.csv")
+colnames(result) = c("shot_made_flag", "predicted shot flag")
+print(nrow(subset(result, (result$shot_made_flag == 1 & result$`predicted shot flag`==1) | ((result$shot_made_flag == 2 & result$`predicted shot flag`==2))))/nrow(result))
+
+#write.csv(result, "cTree_Train_Previous_Seasons_with_Distance_Angle_Time.csv")
